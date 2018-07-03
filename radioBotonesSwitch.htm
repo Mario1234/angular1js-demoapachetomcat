@@ -1,0 +1,15 @@
+<!-- usar $parent si se usa ng-repeat con un ng-model dentro -->
+<div ng-repeat="elem in ciudades">
+	<input type="radio" ng-model="$parent.ciudadRadio" ng-value="elem.ciudad">{{ elem.ciudad }}
+</div>
+<div ng-switch="ciudadRadio">
+  <div ng-switch-when="Amsterdam">
+	 <h1>Holanda</h1>
+  </div>
+  <div ng-switch-when="Brujas">
+	 <h1>Belgica</h1>
+  </div>
+  <div ng-switch-default>
+	 <h1>Ni idea</h1>
+  </div>
+</div>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-route.js"></script>
+<style>
+	/*los que tienen required y estan vacios no son validos*/
+	input.ng-invalid {
+		background-color:pink;
+	}
+	input.ng-valid {
+		background-color:lightgreen;
+	}
+</style>
+</head>
+<!-- ng-app se carga igual que onload de javascript-->
+<body ng-app="miAplicacion">	
+  <p>{{coste}}</p>
+	<!-- es necesario que sea un form para que funcionen loas ng-show -->
+  <form name="miFormulario" ng-controller="miControlador" ng-init="cantidad=1;deshabilitado=false;escondido=false"><!-- ng-init inicializa variables -->
+    <p>Color: <input ng-model="micolor" required mi-directiva2/></p><!-- ng-model asocia el input a una variable (vale para select tambien)-->
+    <p>Coste: <input style="background-color:{{micolor}}" ng-model="coste"/></p>
+    <p>Cantidad: <input ng-model="cantidad"/></p>
+    <p>BIND dollar: <span ng-bind="cantidad * coste"/></span></p><!-- ng-bind todavia no le veo mucho uso -->
+    <p>Llaves Dollar: {{ cantidad * coste }}</p>
+    <!-- las dobles llaves son para escribir Angular directamente en el HTML -->
+    <mi-Directiva-De-Prueba nombre="pato"></mi-Directiva-De-Prueba>
+    <ul>
+		<!-- ng-repeat hace bucle clonando elems en la vista -->
+		<!-- se usa pipe para aplicar filtros en cadena, filtra los que tienen la letra e, orderBy y uppercase  en este caso-->
+		<!-- ni paris ni francia tienen e asi que solo brujas y amsterdam dentro -->
+    	<li ng-repeat="elem in ciudades | filter:'e' | orderBy:orden">
+      		<span ng-if="$odd" style="background-color:#f1f1f1">{{ $index + 1 }} {{ elem.ciudad | uppercase }}</span>
+			<span ng-if="$even">{{ $index + 1 }} {{ elem.ciudad | uppercase }}</span>
+    	</li>
+		<!-- los even y odd son porpiedades de los repeat -->
+  	</ul>
+	<button ng-click="ordenarPor('pais')">OrdenarPorPais</button>
+    <button ng-disabled="deshabilitado" ng-hide="escondido" ng-click="ordenarPor('ciudad')">OrdenarPorCiudad</button>
+	<input type="checkbox" ng-model="deshabilitado"/>Deshabilitar
+	<input type="checkbox" ng-model="escondido"/>Esconder
+	<br>
+	<!-- con ng-options se puede seleccionar un objeto, no solo un string como con ng-repeat -->
+	<select ng-model="ciudadSeleccionada" ng-options="x.ciudad for x in ciudades">
+	</select>
+	<h1>Has seleccionado: {{ciudadSeleccionada.ciudad}}</h1>
+	<p>Su pais es: {{ciudadSeleccionada.pais}}</p>
+	<h1 ng-mousemove="coordRaton($event)">Raton sobre mi!</h1>
+	<p>Coordenadas: {{cx + ', ' + cy}}</p>
+	<p>Mete email</p>
+	<input type="email" name="cajaValidar" ng-model="text" required>
+	<!-- ng-show comprueba si un campo del formulario cumple un requisito(o varios) y muestra un mensaje -->
+	<!-- ng-show tiene varios requisitos para elegir, email correcto, numero correcto, etc... -->
+    <span ng-show="miFormulario.cajaValidar.$touched && miFormulario.cajaValidar.$valid">Cumple todos los requisitos</span>
+    <span ng-show="miFormulario.cajaValidar.$error.email">No es una direccion email valida</span>
+	<br>
+	<div ng-include="'radioBotonesSwitch.htm'"></div>	
+  </form>
+  <!-- en este segundo controlador damos otro valor a la variable coste pero como es otro ambito no pasa nada-->
+  <div ng-controller="miControlador2">
+	<p>{{coste}}</p>
+	<p>{{direcURL}}</p>
+	<p>{{cambiante}}</p>
+	<p>{{salidaMiServicio}}</p>
+  </div>	
+  <p>{{palabra}}</p>
+  <p>{{palabra | miFiltro}}</p>
+  <p>{{palabra | miFiltro2}}</p>
+  <a href="#!verde">Verde</a>
+  <a href="#!azul">Azul</a>
+  <div ng-view></div>
+
+  <script>
+  var aplicacionAngular = angular.module("miAplicacion", ["ngRoute"]);
+  //en el controlador tambien se inicializan variables
+  //$scope es el ambito, imprescindible
+  aplicacionAngular.controller('miControlador', function($scope) {
+    	$scope.coste = 5;//coste es 5 dentro del controlador
+        $scope.ciudades = [{ciudad:"Amsterdam", pais:"Holanda"}, {ciudad:"Brujas", pais:"Belgica"},{ciudad:"Albacete", pais:"Espania"}, {ciudad:"Paris", pais:"Francia"}];
+		$scope.orden = 'ciudad';
+		$scope.ordenarPor = function(x) {
+			$scope.orden = x;
+		}
+		$scope.coordRaton = function(evento) {
+			$scope.cx = evento.clientX;
+			$scope.cy = evento.clientY;
+		}
+	});
+  aplicacionAngular.service('miServicio', function() {
+	this.montania = function(x) {//esta funcion pone mayusculas todas las letras menos la primera y la ultima
+		if(x.length<2)return x;
+		var ini = x.charAt(0);
+		var fin = x.charAt(x.length-1);
+		return ini+x.substring(1, x.length-1).toUpperCase()+fin;
+	}
+  });
+  //el servicio $location ofrece informacion sobre la direccion URL, se debe usar en vez de window.location que ralentiza
+  aplicacionAngular.controller('miControlador2', function($scope,$location,$timeout,miServicio) {
+    	$scope.coste = 7;//coste es 7 dentro del controlador2
+		$scope.direcURL = $location.absUrl();
+		$scope.Ncambiante = 0;
+		$scope.cambiante = "Pi";
+		$timeout(function () {
+			$scope.cambiante = "Po";
+		}, 1000);
+		$scope.salidaMiServicio = miServicio.montania("triceratops");
+	});
+  aplicacionAngular.filter('miFiltro', function() {
+	return function(x) {//esta funcion pone mayusculas la primera y la ultima letra
+		if(x.length<2)return x;
+		var ini = x.charAt(0).toUpperCase();
+		var fin = x.charAt(x.length-1).toUpperCase();
+		return ini+x.substring(1, x.length-1)+fin;
+	};
+  });  
+  aplicacionAngular.filter('miFiltro2',['miServicio', function(miServicio) {
+    return function(x) {
+        return miServicio.montania(x);
+    };
+  }]);
+  //concepto ambito raiz
+  aplicacionAngular.run(function($rootScope) {
+		$rootScope.coste = 2;//coste es 2 por defecto, a no ser que un subambito lo sobrescriba
+		$rootScope.palabra = "diplodocus";
+	});
+  aplicacionAngular.directive("miDirectivaDePrueba", function() {
+      return {
+          scope: {
+          	//nombre es un atributo asi que @
+            //lo recogemos como parametro
+              nombre: '@'
+          },
+          //cualquier directiva html con el nombre mi-Directiva-De-Prueba
+          //creara esta plantilla, la variable nombre es el parametro
+          template:'<div><h2>{{nombre}}</h2></div>'
+      };
+  });  
+  //una validacion personalizada, mira si tiene solo letras
+  aplicacionAngular.directive("miDirectiva2", function() {
+    return {
+        require: 'ngModel',
+        link: function(ambito, elemento, atributo, miControladorX) {
+            function soloLetras(cadena) {
+				//la API de angular tiene funciones utiles para lenguajes con tipado dinamico
+				if(angular.isString(cadena)){
+					if (/^[a-zA-Z]+$/.test(cadena)) {
+						miControladorX.$setValidity('charE', true);
+					} else {
+						miControladorX.$setValidity('charE', false);
+					}
+				}
+                return cadena;
+            }
+            miControladorX.$parsers.push(soloLetras);
+        }
+    };
+  });
+  //encaminador de enlaces href
+  aplicacionAngular.config(function($routeProvider) {
+    $routeProvider
+    .when("/", {
+        templateUrl : "changelog.html"
+    })
+    .when("/azul", {
+        templateUrl : "azul.htm"
+    })
+    .when("/verde", {
+        templateUrl : "verde.htm"
+    });
+  });
+  </script>
+
+</body>
+</html>
