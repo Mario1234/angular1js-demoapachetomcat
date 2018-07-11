@@ -18,6 +18,7 @@
   <p>{{coste}}</p>
 	<!-- es necesario que sea un form para que funcionen loas ng-show -->
   <form name="miFormulario" ng-controller="miControlador" ng-init="cantidad=1;deshabilitado=false;escondido=false"><!-- ng-init inicializa variables -->
+    <!-- mi-directiva2 aplica la valdiacion soloLetras en este input -->
     <p>Color: <input ng-model="micolor" required mi-directiva2/></p><!-- ng-model asocia el input a una variable (vale para select tambien)-->
     <p>Coste: <input style="background-color:{{micolor}}" ng-model="coste"/></p>
     <p>Cantidad: <input ng-model="cantidad"/></p>
